@@ -13,6 +13,8 @@ argparser = argparse.ArgumentParser(description="This stupid content parser")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 argsubparsers.required = True
 
+argsp = argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
+
 class GitRepository(object):
     """
     A git repository
