@@ -160,6 +160,8 @@ def repo_find(path=".", required=True):
 	# Recursive case
 	return repo_find(parent, required)
 
+def cmd_init(args):
+	repo_create(args.path)
 
 class GitObject(object):
 	repo = None
@@ -252,10 +254,6 @@ def cmd_cat_file(args):
 def cat_file(repo, obj, fmt=None):
 	obj = object_read(repo, object_find(repo, obj, fmt=fmt))
 	sys.stdout.buffer.write(obj.serialize())
-
-def cmd_init(args):
-	repo_create(args.path)
-
 
 def main(argv=sys.argv[1:]):
 	args = argparser.parse_args(argv)
