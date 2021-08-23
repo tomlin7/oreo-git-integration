@@ -133,6 +133,10 @@ def repo_default_config():
 	return ret
 
 
+def cmd_init(args):
+	repo_create(args.path)
+
+
 def main(argv=sys.argv[1:]):
 	args = argparser.parse_args(argv)
 
