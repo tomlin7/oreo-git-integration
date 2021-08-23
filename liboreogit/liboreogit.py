@@ -229,6 +229,15 @@ def object_write(obj, actually_write=True):
 
 	return sha
 
+class GitBlob(GitObject):
+	fmt = b'blob'
+
+	def serialize(self):
+		return self.blobdata
+
+	def deserialze(self, data):
+		self.blobdata = data
+
 def cmd_init(args):
 	repo_create(args.path)
 
