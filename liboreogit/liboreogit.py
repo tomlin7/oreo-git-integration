@@ -14,13 +14,20 @@ argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 argsubparsers.required = True
 
 argsp = argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
-
 argsp.add_argument("path",
 	metavar="directory",
 	nargs="?",
 	default=".",
 	help="Where to create the repository.")
 
+argsp = argsubparsers.add_parser("cat-file", help="Provide content of repository objects.")
+argsp.add_argument("type",
+	metavar="type",
+	choices=["blob", "commit", "tag", "tree"],
+	help="Specify the type")
+argsp.add_argument("object",
+	metavar="object",
+	help="The object to display")
 
 class GitRepository(object):
     """
@@ -237,6 +244,14 @@ class GitBlob(GitObject):
 
 	def deserialze(self, data):
 		self.blobdata = data
+
+def cmd_cat_file(args):
+	repo = repo_find()
+	cat_file(repo, args.object, fmt=args.type.encode())
+
+def cat_file(repo, obj, fmt=None):
+	obj = object_read(repo, object_find(repo, obj, fmt=fmt))
+	sys.stdout.buffer.write(obj.serialize())
 
 def cmd_init(args):
 	repo_create(args.path)
