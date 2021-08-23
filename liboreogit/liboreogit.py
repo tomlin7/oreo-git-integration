@@ -172,7 +172,44 @@ class GitObject(object):
 	def deserialze(self, data):
 		raise Exception("Unimplemented!")
 
+def object_read(repo, sha):
+	"""
+	Read object's object_id from Git repository. 
+	Return a GitObject whose exact type depends on the object
+	"""
 
+	path = repo_file(repo, "objects", sha[0:2], sha[2:])
+
+	with open(path, "rb") as f:
+		raw = zlib.decompress(f.read())
+
+		# Read object type
+		x = raw.find(b' ')
+		fmt = raw[0:x]
+
+		# Read and validate object size
+		y = raw.find(b'\x00', x)
+		size = int(raw[x:y].decode("ascii"))
+		if size != len(raw) - y - 1:
+			raise Exception(f"Malformed object {sha}: bad length")
+
+		# Pick constructor
+		if fmt == b'commit':
+			c = GitCommit
+		elif fmt == b'tree':
+			c = GitTree
+		elif fmt == b'tag':
+			c = GitTag
+		elif fmt == b'blob':
+			c = GitBlob
+		else:
+			raise Exception("Unknown type {0} for object {1}".format(fmt.decode("ascii"), sha))
+
+		# Call constructor and return object
+		return c(repo, raw[y+1:])
+
+def object_find(repo, name, fmt=None, follow=True):
+	return name
 
 
 def cmd_init(args):
