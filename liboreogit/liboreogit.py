@@ -45,6 +45,15 @@ argsp.add_argument("-w",
 argsp.add_argument("path",
 	help="Read object from <file>")
 
+argsp = argsubparsers.add_parser(
+	"log", help="Display history of a given commit.")
+argsp.add_argument("commit",
+	default="HEAD",
+	nargs="?",
+	help="Commit to start at.")
+
+
+
 class GitRepository(object):
     """
     A git repository
@@ -377,6 +386,37 @@ class GitCommit(GitObject):
 
 	def serialize(self):
 		return kvlm_serialize(self.kvlm)
+
+def cmd_log(args):
+    repo = repo_find()
+
+    print("digraph wyaglog{")
+    log_graphviz(repo, object_find(repo, args.commit), set())
+    print("}")
+
+def log_graphviz(repo, sha, seen):
+    if sha in seen:
+        return
+    
+    seen.add(sha)
+
+    commit = object_read(repo, sha)
+    assert(commit.fmt == b'commit')
+
+    if not b'parent' in commit.kvlm.keys():
+        # Base case: the initial commit.
+        return
+
+    parents = commit.kvlm[b'parent']
+
+    if type(parents) != list:
+        parents = [parents]
+
+    for p in parents:
+        p = p.decode("ascii")
+        print("c_{0} -> c_{1};".format(sha, p))
+        log_graphviz(repo, p, seen)
+
 
 def main(argv=sys.argv[1:]):
 	args = argparser.parse_args(argv)
