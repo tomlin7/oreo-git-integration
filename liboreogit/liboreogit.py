@@ -52,6 +52,11 @@ argsp.add_argument("commit",
 	nargs="?",
 	help="Commit to start at.")
 
+argsp = argsubparsers.add_parser(
+	"ls-tree",
+	help="Pretty-print a tree object.")
+argsp.add_argument("object",
+	help="The object to show")
 
 
 class GitRepository(object):
@@ -470,6 +475,18 @@ class GitTree(GitObject):
 
 	def serialize(self):
 		return tree_serialize(self)
+
+def cmd_ls_tree(args):
+	repo = repo_find()
+	obj = object_read(repo, object_find(repo, args.object, fmt=b'tree'))
+
+	for item in obj.items:
+		print("{0} {1} {2}\t{3}".format(
+			"0" * (6 - len(item.mode)) + item.mode.decode("ascii"),
+			# displays the the type of the object pointed to
+			object_read(repo, item.sha).fmt.decode("ascii"),
+			item.sha,
+			item.path.decode("ascii")))
 
 def main(argv=sys.argv[1:]):
 	args = argparser.parse_args(argv)
