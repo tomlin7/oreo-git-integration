@@ -572,6 +572,8 @@ def show_ref(repo, refs, with_hash=True, prefix=""):
 		else:
 			show_ref(repo, v, with_hash=with_hash, prefix="{0}{1}{2}".format(v + " " if with_hash else "", prefix + "/" if prefix else "", k))
 
+class GitTag(GitCommit):
+	fmt = b'tag'
 
 def main(argv=sys.argv[1:]):
 	args = argparser.parse_args(argv)
