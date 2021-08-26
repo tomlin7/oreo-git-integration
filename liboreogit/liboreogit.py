@@ -527,6 +527,31 @@ def tree_checkout(repo, tree, path):
 			with open(dest, 'wb') as f:
 				f.write(obj.blobdata)
 
+def ref_resolve(repo, ref):
+	with open(repo_file(repo, ref), 'r') as fp:
+		data = fp.read()[:-1]
+		# Drop final
+	if data.startswith("ref: "):
+		return ref_resolve(repo, data[5:])
+	else:
+		return data
+
+def ref_list(repo, path=None):
+	if not path:
+		path = repo_dir(repo, "refs")
+
+	ret = collections.OrderedDict()
+	# Git shows refs sorted.
+	for f in sorted(os.listdir(path)):
+		can = os.path.join(path, f)
+		
+		if os.path.isdir(can):
+			ret[f] = ref_list(repo, can)
+		else:
+			ret[f] = ref_resolve(repo, can)
+
+	return ret
+
 def main(argv=sys.argv[1:]):
 	args = argparser.parse_args(argv)
 
