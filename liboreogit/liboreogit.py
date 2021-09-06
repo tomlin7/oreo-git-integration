@@ -70,6 +70,20 @@ argsp = argsubparsers.add_parser(
 	"show-ref",
 	help="List references.")
 
+argsp = argsubparsers.add_parser(
+	"tag",
+	help="List and create tags")
+argsp.add_argument("-a",
+	action="store_true",
+	dest="create_tag_object",
+	help="Whether to create a tag object")
+argsp.add_argument("name",
+	nargs="?",
+	help="The new tag's name")
+argsp.add_argument("object",
+	default="HEAD",
+	nargs="?",
+	help="The object the new tag will point to")
 
 class GitRepository(object):
     """
@@ -574,6 +588,17 @@ def show_ref(repo, refs, with_hash=True, prefix=""):
 
 class GitTag(GitCommit):
 	fmt = b'tag'
+
+def cmd_tag(args):
+	repo = repo_find()
+
+	if args.name:
+		tag_create(args.name,
+			args.object,
+			type="object" if args.crete_tag_object else "ref")
+	else:
+		refs = ref_list(repo)
+		show_ref(repo, refs["tags"], with_hash=False)
 
 def main(argv=sys.argv[1:]):
 	args = argparser.parse_args(argv)
