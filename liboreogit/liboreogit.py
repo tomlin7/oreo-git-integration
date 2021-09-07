@@ -274,7 +274,36 @@ def object_read(repo, sha):
 		return c(repo, raw[y+1:])
 
 def object_find(repo, name, fmt=None, follow=True):
-	return name
+	sha = object_resolve(repo, name)
+
+	if not sha:
+		raise Exception("No such reference {0}.".format(name))
+	
+	if len(sha) > 1:
+		raise Exception("Ambigous reference {0}: Candidates are:\n - {1}.".format(name, "\n - ".join(sha)))
+	
+	sha = sha[0]
+
+	if not fmt:
+		return sha
+	
+	while True:
+		obj = object_read(repo, sha)
+
+		if obj.fmt == fmt:
+			return sha
+		
+		if not follow:
+			return None
+
+		# Follow tags
+		if obj.fmt == b'tag':
+			sha = obj.kvlm[b'object'].decode("ascii")
+		elif obj.fmt == b'commit' and fmt == b'tree':
+			sha = obj.kvlm[b'tree'].decode("ascii")
+		else:
+			return None
+		
 
 def object_write(obj, actually_write=True):
 	# Serialize object data
