@@ -85,6 +85,20 @@ argsp.add_argument("object",
 	nargs="?",
 	help="The object the new tag will point to")
 
+argsp = argsubparsers.add_parser(
+	"rev-parse",
+	help="Parse revision (or other objects) identifiers"
+)
+argsp.add_argument("--oreo-git-type",
+	metavar="type",
+	dest="type",
+	choices=["blob", "commit", "tag", "tree"],
+	default=None,
+	help="Specify the expected type")
+argsp.add_argument("name",
+	help="The name to parse")
+
+
 class GitRepository(object):
     """
     A git repository
@@ -670,6 +684,15 @@ def object_resolve(repo, name):
 					candidates.append(prefix + f)
 	
 	return candidates
+
+
+def cmd_rev_parse(args):
+	if args.type:
+		fmt = args.type.encode()
+	
+	repo = repo_find()
+
+	print(object_find(repo, args.name, args.type, follow=True))
 
 
 def main(argv=sys.argv[1:]):
