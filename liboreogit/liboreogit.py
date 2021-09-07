@@ -600,6 +600,49 @@ def cmd_tag(args):
 		refs = ref_list(repo)
 		show_ref(repo, refs["tags"], with_hash=False)
 
+def object_resolve(repo, name):
+	"""
+	Resolve name to an object hash in repo.
+
+	This function is aware of:
+	- the HEAD literal
+	- short and long hashes
+	- tags
+	- branches
+	- remote branches
+	"""
+
+	candidates = list()
+	hashRE = re.compile(r"^[0-9A-Fa-f]{4,40}$")
+
+	# Empty string? Abort
+	if not name.strip():
+		return None
+	
+	# Head is nonambiguous
+	if name == "HEAD":
+		return [ref_resolve(repo, "HEAD")]
+	
+	if hashRE.match(name):
+		if len(name) == 40:
+			# This is a compiler hash
+			return [name.lower()]
+		
+		# This is a small hash 4 seems to be the minimum length
+		# for git to consider something a short hash.
+		# This limit is documented in the man git-rev-parse
+		name = name.lower()
+		prefix = name[0:2]
+		path = repo_dir(repo, "objects", prefix, mkdir=Fakse)
+		if path:
+			rem = name[2:]
+			for f in os.listdir(path):
+				if f.startswith(rem):
+					candidates.append(prefix + f)
+	
+	return candidates
+
+
 def main(argv=sys.argv[1:]):
 	args = argparser.parse_args(argv)
 
